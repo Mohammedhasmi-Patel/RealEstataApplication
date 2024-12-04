@@ -1,22 +1,32 @@
 import { useSelector } from "react-redux";
 import { useRef, useState, useEffect } from "react";
-import axios from "axios"; // Import axios for handling uploads
+import axios from "axios";
+import {
+  updateUserStart,
+  updateUserSuccess,
+  updateUserFailure,
+} from "../redux/user/userSlice";
+import { useDispatch } from "react-redux";
 
 export default function Profile() {
   const preset = import.meta.env.VITE_REACT_APP_PRESET;
   const CLOUDINARY_URI = import.meta.env.VITE_REACT_APP_CLOUDINARY_URL;
 
   const fileRef = useRef(null);
-  const { currentUser } = useSelector((state) => state.user);
+  const { currentUser, loading, error } = useSelector((state) => state.user);
   const [file, setFile] = useState(undefined);
   const [fileUploadError, setfileUploadError] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [updateSuccess, setUpdateSuccess] = useState(false);
+
   const [formData, setFormData] = useState({
     username: currentUser.username || "",
     email: currentUser.email || "",
     password: "",
     avatar: currentUser.avatar || "",
   });
+
+  const dispatch = useDispatch();
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
@@ -73,11 +83,39 @@ export default function Profile() {
     setFile(e.target.files[0]);
   };
 
+  // form submit for update api
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    try {
+      const res = await fetch(`/api/user/update/${currentUser._id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+      console.log(data);
+
+      if (data.success === false) {
+        dispatch(updateUserFailure(data.message));
+        return;
+      }
+
+      dispatch(updateUserSuccess(data));
+      setUpdateSuccess(true);
+    } catch (error) {
+      dispatch(updateUserFailure(error.message));
+    }
+  }
+
   return (
     <div className="p-3 max-w-lg mx-auto">
       <h1 className="text-3xl font-bold text-center my-7">Profile</h1>
 
-      <form className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <input
           onChange={handleFileChange}
           type="file"
@@ -125,14 +163,15 @@ export default function Profile() {
           placeholder="password"
           className="border p-3 rounded-lg"
           id="password"
-          value={formData.password}
           onChange={handleInputChange}
+          value={formData.password}
         />
         <button
           type="submit"
+          disabled={loading}
           className="bg-slate-600 uppercase text-white p-3 rounded-lg hover:opacity-95 disabled:opacity-80"
         >
-          Update
+          {loading ? "Loading" : "Update"}
         </button>
       </form>
 
@@ -140,6 +179,11 @@ export default function Profile() {
         <span className="text-red-500 cursor-pointer">Delete account</span>
         <span className="text-red-500 cursor-pointer">Sign out</span>
       </div>
+
+      <p className="text-red-500 ">{error ? error : ""}</p>
+      <p className="text-green-500">
+        {updateSuccess ? "user updated successfully" : ""}
+      </p>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import express from "express";
+import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import { DbCon } from "./utils/db.js";
 import UserRoutes from "./routes/user.route.js";
@@ -13,6 +14,8 @@ DbCon();
 
 // middleware
 app.use(express.json());
+app.use(cookieParser());
+
 // routes
 app.use("/api/user", UserRoutes);
 app.use("/api/auth", AuthRoutes);

@@ -25,6 +25,8 @@ export default function Profile() {
   const [fileUploadError, setfileUploadError] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [updateSuccess, setUpdateSuccess] = useState(false);
+  const [showListingError, setShowListingError] = useState(false);
+  const [userListing, setUserListing] = useState([]);
 
   const [formData, setFormData] = useState({
     username: currentUser.username || "",
@@ -33,10 +35,9 @@ export default function Profile() {
     avatar: currentUser.avatar || "",
   });
 
-  console.log(formData);
-
   const dispatch = useDispatch();
   const naviagte = useNavigate();
+  console.log(userListing);
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
@@ -107,7 +108,6 @@ export default function Profile() {
       });
 
       const data = await res.json();
-      console.log(data);
 
       if (data.success === false) {
         dispatch(updateUserFailure(data.message));
@@ -157,6 +157,23 @@ export default function Profile() {
       naviagte("/sign-in");
     } catch (error) {
       dispatch(signOutUserFailure(error.message));
+    }
+  }
+
+  // function for handling listing views
+
+  async function handleShowListing() {
+    try {
+      const res = await fetch(`/api/user/listings/${currentUser._id}`);
+      const data = await res.json();
+      if (data.success === false) {
+        setShowListingError(true);
+        return;
+      }
+      // if everything is okay then just set the data
+      setUserListing(data);
+    } catch (error) {
+      setShowListingError(true);
     }
   }
 
@@ -246,6 +263,44 @@ export default function Profile() {
       <p className="text-red-500 ">{error ? error : ""}</p>
       <p className="text-green-500">
         {updateSuccess ? "user updated successfully" : ""}
+      </p>
+      <button onClick={handleShowListing} className="text-green-600 w-full">
+        Show Listing
+      </button>
+      <p>{showListingError && "error in showlistings"}</p>
+
+      <p>
+        {userListing && userListing.length > 0 && (
+          <div className="flex flex-col gap-4">
+            <h1 className="text-center mt-7 text-3xl font-semibold">
+              Your Listings
+            </h1>
+            {userListing.map((listing) => (
+              <div
+                className="border p-3 rounded-lg flex justify-between items-center gap-4"
+                key={listing._id}
+              >
+                <Link to={`listings/${listing._id}`}>
+                  <img
+                    className="h-16 w-16 object-contain rounded-lg"
+                    src={`${listing.imageUrls[0]}`}
+                    alt="listing covers"
+                  />
+                </Link>
+                <Link
+                  className="text-slate-700 font-semibold flex-1 hover:underline "
+                  to={`listings/${listing._id}`}
+                >
+                  <p>{listing.name}</p>
+                </Link>
+                <div className="flex flex-col items-center">
+                  <button className="text-red-600 uppercase">Delete</button>
+                  <button className="text-green-600 uppercase">Edit</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </p>
     </div>
   );

@@ -1,13 +1,21 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import {
+  signInStart,
+  signInFailure,
+  signInSuccess,
+} from "../redux/user/userSlice";
+import { useDispatch } from "react-redux";
+
 import OAuth from "../components/OAuth";
 
 export default function SignUp() {
   const [formData, setFormData] = useState({});
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   function handleChange(e) {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -18,6 +26,7 @@ export default function SignUp() {
       e.preventDefault();
 
       // before calling api we will make loading is true
+      dispatch(signInStart());
       setLoading(true);
 
       const res = await fetch("/api/auth/signup", {
@@ -30,16 +39,18 @@ export default function SignUp() {
 
       const data = await res.json();
       if (data.success === false) {
+        dispatch(signInFailure(data.message));
         setError(data.message);
         setLoading(false);
         return;
       }
+      dispatch(signInSuccess(data));
       setLoading(false);
       setError(null);
       navigate("/sign-in");
     } catch (error) {
-      setError(error.message);
       setLoading(false);
+      setError(error.message);
     }
   }
 

@@ -1,7 +1,7 @@
 import { useSelector } from "react-redux";
 import { useRef, useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   updateUserStart,
   updateUserSuccess,
@@ -32,6 +32,8 @@ export default function Profile() {
     password: "",
     avatar: currentUser.avatar || "",
   });
+
+  console.log(formData);
 
   const dispatch = useDispatch();
   const naviagte = useNavigate();
@@ -220,6 +222,13 @@ export default function Profile() {
         >
           {loading ? "Loading" : "Update"}
         </button>
+
+        <Link
+          className="bg-green-600 p-3 rounded-lg text-center text-white uppercase hover:opacity-95 "
+          to={"/create-listing"}
+        >
+          Create Listing
+        </Link>
       </form>
 
       <div className="flex justify-between mt-5">

@@ -92,10 +92,10 @@ export default function Profile() {
   };
 
   // form submit for update api
-
-  async function handleSubmit(e) {
+  async function handleUpdateUser(e) {
     e.preventDefault();
     try {
+      dispatch(updateUserStart());
       const res = await fetch(`/api/user/update/${currentUser._id}`, {
         method: "POST",
         headers: {
@@ -162,7 +162,7 @@ export default function Profile() {
     <div className="p-3 max-w-lg mx-auto">
       <h1 className="text-3xl font-bold text-center my-7">Profile</h1>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <form onSubmit={handleUpdateUser} className="flex flex-col gap-4">
         <input
           onChange={handleFileChange}
           type="file"
